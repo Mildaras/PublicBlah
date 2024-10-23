@@ -39,10 +39,16 @@ public class MoveEnemy : MonoBehaviour
     private int currentWaypoint = 0;
     private float lastWaypointSwitchTime;
     public float speed = 1.0f;
+    private Enemy enemyScript;
 
     // Use this for initialization
     void Start()
     {
+        enemyScript = GetComponent<Enemy>();
+        if (enemyScript != null)
+        {
+            speed = enemyScript.speed;
+        }
         lastWaypointSwitchTime = Time.time;
     }
 

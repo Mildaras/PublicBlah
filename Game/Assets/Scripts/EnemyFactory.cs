@@ -1,44 +1,51 @@
 using UnityEngine;
+using System;
+using System.Reflection;
 
 public static class EnemyFactory
 {
-    public static GameObject CreateEnemy(string prefabPath, Vector3 position, Quaternion rotation, GameObject[] waypoints)
+    public static GameObject CreateEnemy(Type enemyType, Vector3 position, Quaternion rotation, GameObject[] waypoints)
     {
+        string prefabPath = GetPrefabPathFromEnemyType(enemyType);
+        if (string.IsNullOrEmpty(prefabPath))
+        {
+            return null;
+        }
+
         GameObject enemyPrefab = Resources.Load<GameObject>(prefabPath);
+        if (enemyPrefab == null)
+        {
+            return null;
+        }
+
         GameObject newEnemy = GameObject.Instantiate(enemyPrefab, position, rotation);
-        InitializeEnemy(newEnemy, waypoints, prefabPath);
+        newEnemy.AddComponent(enemyType);
+
+        InitializeEnemy(newEnemy, waypoints);
         return newEnemy;
     }
 
-    private static void InitializeEnemy(GameObject enemy, GameObject[] waypoints, string prefabPath)
+    private static string GetPrefabPathFromEnemyType(Type enemyType)
+    {
+        var propertyInfo = enemyType.GetProperty("PrefabPath", BindingFlags.Public | BindingFlags.Instance | BindingFlags.FlattenHierarchy);
+
+        if (propertyInfo != null)
+        {
+            Enemy enemyInstance = Activator.CreateInstance(enemyType) as Enemy;
+            return propertyInfo.GetValue(enemyInstance) as string;
+        }
+        else
+        {
+            return null;
+        }
+    }
+
+    private static void InitializeEnemy(GameObject enemy, GameObject[] waypoints)
     {
         MoveEnemy moveEnemy = enemy.GetComponent<MoveEnemy>();
         if (moveEnemy != null)
         {
             moveEnemy.waypoints = waypoints;
-            if (prefabPath.Contains("Enemy2"))
-            {
-                moveEnemy.speed = 1.5f;
-            }
-            else
-            {
-                moveEnemy.speed = 2.5f;
-            }
-        }
-
-        HealthBar healthBar = enemy.GetComponent<HealthBar>();
-        if (healthBar != null)
-        {
-            if (prefabPath.Contains("Enemy 2"))
-            {
-                healthBar.maxHealth = 150;
-                healthBar.currentHealth = 150;
-            }
-            else
-            {
-                healthBar.maxHealth = 100;
-                healthBar.currentHealth = 100;
-            }
         }
     }
 }

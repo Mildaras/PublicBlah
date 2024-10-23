@@ -2,20 +2,24 @@
 using System.Collections;
 using System.Collections.Generic;
 
+using UnityEngine;
+using System;
+
 [System.Serializable]
 public class Wave
 {
-    public string enemyPrefabPath;
+    public string enemyClassName;
     public float spawnInterval = 2;
     public int maxEnemies = 20;
 
-    public Wave(string prefabPath, float interval, int max)
+    public Wave(string className, float interval, int max)
     {
-        enemyPrefabPath = prefabPath;
+        enemyClassName = className;
         spawnInterval = interval;
         maxEnemies = max;
     }
 }
+
 
 public class SpawnEnemy : MonoBehaviour
 {
@@ -24,10 +28,10 @@ public class SpawnEnemy : MonoBehaviour
     public int timeBetweenWaves = 5;
 
     private GameManagerBehavior gameManager;
-    private AblyManagerBehavior ablyManager;
-
     private float lastSpawnTime;
     private int enemiesSpawned = 0;
+    private AblyManagerBehavior ablyManager; 
+
 
     void Start()
     {
@@ -55,9 +59,10 @@ public class SpawnEnemy : MonoBehaviour
             if (canSpawn && enemiesSpawned < waves[currentWave].maxEnemies)
             {
                 lastSpawnTime = Time.time;
-                string prefabPath = Random.value > 0.5f ? "Prefabs/Enemy" : "Prefabs/Enemy 2";
+                Type enemyType = GetRandomEnemyType();
+
                 GameObject newEnemy = EnemyFactory.CreateEnemy(
-                    prefabPath,
+                    enemyType,
                     transform.position,
                     Quaternion.identity,
                     waypoints
@@ -85,5 +90,21 @@ public class SpawnEnemy : MonoBehaviour
             gameOverText.GetComponent<Animator>().SetBool("gameOver", true);
         }
     }
-}
 
+    private Type GetRandomEnemyType()
+    {
+        float rand = UnityEngine.Random.value;
+        if (rand < 0.33f)
+        {
+            return typeof(Enemy1);
+        }
+        else if (rand < 0.66f)
+        {
+            return typeof(Enemy2);
+        }
+        else
+        {
+            return typeof(Enemy3);
+        }
+    }
+}
