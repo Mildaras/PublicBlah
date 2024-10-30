@@ -31,9 +31,9 @@ public class AblyManagerBehavior : MonoBehaviour
         PaginatedResult<Message> resultPage = await gameChannel.HistoryAsync(prp);
         List<Message> msgs = resultPage.Items;
         // We need to only use rewind to the most recent start message to avoid starting from a prior game
-        for (int i=0; i < msgs.Count; i++)
+        for (int i = 0; i < msgs.Count; i++)
         {
-            if(msgs[i].Name == "start")
+            if (msgs[i].Name == "start")
             {
                 ChannelParams channelParams = new ChannelParams();
                 channelParams.Add("rewind", "" + i);
