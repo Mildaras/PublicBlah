@@ -96,15 +96,15 @@ public class SpawnEnemy : MonoBehaviour
         float rand = UnityEngine.Random.value;
         if (rand < 0.33f)
         {
-            return typeof(Enemy1);
+            return typeof(StandartEnemy);
         }
         else if (rand < 0.66f)
         {
-            return typeof(Enemy2);
+            return typeof(FastEnemy);
         }
         else
         {
-            return typeof(Enemy3);
+            return typeof(StrongEnemy);
         }
     }
 }

@@ -42,6 +42,8 @@ public class ShootEnemies : MonoBehaviour
     private float lastShotTime;
     private MonsterData monsterData;
     private AblyManagerBehavior ablyManager;
+    private ITargetingStrategy targetingStrategy;
+    private GameManagerBehavior gameManager;
 
     // Use this for initialization
     void Start()
@@ -50,9 +52,10 @@ public class ShootEnemies : MonoBehaviour
         lastShotTime = Time.time;
         monsterData = gameObject.GetComponentInChildren<MonsterData>();
         ablyManager = gameObject.GetComponentInChildren<AblyManagerBehavior>();
+        gameManager = GameObject.Find("GameManager").GetComponent<GameManagerBehavior>();
+        SetTargetingStrategyByWave(gameManager.Wave);
     }
 
-    // Update is called once per frame
     void Update()
     {
         if (timestamp.HasValue)
@@ -71,19 +74,9 @@ public class ShootEnemies : MonoBehaviour
                 return;
             }
         }
-        GameObject target = null;
-        // 1
-        float minimalEnemyDistance = float.MaxValue;
-        foreach (GameObject enemy in enemiesInRange)
-        {
-            float distanceToGoal = enemy.GetComponent<MoveEnemy>().DistanceToGoal();
-            if (distanceToGoal < minimalEnemyDistance)
-            {
-                target = enemy;
-                minimalEnemyDistance = distanceToGoal;
-            }
-        }
-        // 2
+
+        GameObject target = targetingStrategy.SelectTarget(enemiesInRange);
+
         if (target != null)
         {
             if (Time.time - lastShotTime > monsterData.CurrentLevel.fireRate)
@@ -91,13 +84,35 @@ public class ShootEnemies : MonoBehaviour
                 Shoot(target.GetComponent<Collider2D>());
                 lastShotTime = Time.time;
             }
-            // 3
+
             Vector3 direction = gameObject.transform.position - target.transform.position;
             gameObject.transform.rotation = Quaternion.AngleAxis(
-                Mathf.Atan2(direction.y, direction.x) * 180 / Mathf.PI,
-                new Vector3(0, 0, 1));
+                Mathf.Atan2(direction.y, direction.x) * Mathf.Rad2Deg,
+                Vector3.forward);
         }
     }
+
+    private void SetTargetingStrategyByWave(int waveNumber)
+    {
+        if (waveNumber >= 3)
+        {
+            targetingStrategy = new HighestHealthTargetingStrategy();
+        }
+        else if (waveNumber >= 2)
+        {
+            targetingStrategy = new NearestEnemyTargetingStrategy(transform);
+        }
+        else if (waveNumber >= 1)
+        {
+            targetingStrategy = new LowestHealthTargetingStrategy();
+        }
+        else
+        {
+            targetingStrategy = new ClosestToGoalTargetingStrategy();
+        }
+    }
+
+
 
     private void OnEnemyDestroy(GameObject enemy)
     {

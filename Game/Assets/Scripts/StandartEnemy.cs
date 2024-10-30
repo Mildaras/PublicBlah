@@ -1,6 +1,6 @@
 using UnityEngine;
 
-public class Enemy1 : Enemy
+public class StandartEnemy : Enemy
 {
     public override string PrefabPath => "Prefabs/Enemy";
 
